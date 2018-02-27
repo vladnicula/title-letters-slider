@@ -1,0 +1,25 @@
+.title-letter-slider {
+  position: relative;
+  line-height: 1.1;
+  vertical-align: middle;
+  overflow: hidden;
+  font-weight: 700;
+  font-size: 10vw;
+  text-transform: lowercase;
+  margin: 0;
+  letter-spacing: -0.35vw;
+  position: relative;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+.title-letter-slider__current-letters {
+  position: relative;
+}
+
+.title-letter-slider__next-letters {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: translateY(100%);
+}
