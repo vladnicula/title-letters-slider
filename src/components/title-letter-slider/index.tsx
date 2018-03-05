@@ -116,8 +116,8 @@ extends React.Component<TitleLetterSliderProps, TitleLetterSliderState> {
   
   render () {
 
-    const letters = this.state.currentLetters.split('');
-    const nextLetters = (this.state.nextLetters || '').split('');
+    const letters = Array.from(this.state.currentLetters)
+    const nextLetters = Array.from((this.state.nextLetters || ''))
   
     return (
       <div 
