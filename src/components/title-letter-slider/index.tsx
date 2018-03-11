@@ -15,10 +15,25 @@ export interface TitleLetterSliderProps {
 }
 
 export interface TitleLetterSliderState {
+  // are we in a animation state, or not? All other state vars below are
+  // relevant only during the animation state.
   animating: boolean;
+
+  // the current letters in the current animation
   currentLetters: string;
+
+  // the next letters in the current animation
   nextLetters: string|null;
+
+  // if we receive new letters while we are still aniamting
   queuedLetters: string|null;
+
+  // the current animation direction for the component.
+  animationDirection: AnimationDirection;
+
+  // if there are queued letters that will run after the current animation
+  // ends, store the direction of the next animation here.
+  queuedDirection: AnimationDirection|null;
 }
 
 // const easeInCubic = ( t:number ): number => t * t * t;
@@ -32,81 +47,85 @@ extends React.Component<TitleLetterSliderProps, TitleLetterSliderState> {
 
   public static defaultProps: Partial<TitleLetterSliderProps> = {
     animationDuration: 700,
+    animationDirection: AnimationDirection.UP,
     letters: ''
-  };
+  }
 
   state = {
     animating: false,
     currentLetters: this.props.letters,
     nextLetters: null,
-    queuedLetters: null
-  };
+    queuedLetters: null,
+    animationDirection: this.props.animationDirection || AnimationDirection.UP,
+    queuedDirection: null
+  }
 
-  rootRef: HTMLDivElement;
+  rootRef: HTMLDivElement
 
   public componentWillReceiveProps(nextProps: TitleLetterSliderProps) {
     // if animation is still processing next letters, keep a reference of the
     // aniamtion that should start after this one. Don't animate now.
-    if ( this.state.nextLetters ) {
+    const { 
+      letters, 
+      animationDirection = AnimationDirection.UP 
+    } = nextProps
+
+    if ( this.state.animating ) {
       return this.setState({
-        queuedLetters: nextProps.letters
-      });
+        queuedLetters: letters,
+        queuedDirection: animationDirection
+      })
     }
 
-    this.startStateTransitionForAnimation(nextProps.letters);
+    this.startStateTransitionForAnimation(letters, animationDirection)
   }
 
   private setSelfRef = (el: HTMLDivElement): void => {
-    this.rootRef = el;
+    this.rootRef = el
   }
 
-  private startStateTransitionForAnimation = async (nextLetters: string|null) => {
-    // console.log('set next letters', nextLetters)
-    await this.setStateWithPromise({nextLetters: nextLetters});
-    // console.log('sleep 10 ms')
-    await this.sleep(10); // raf here 
+  private startStateTransitionForAnimation = async (
+    nextLetters: string,
+    animationDirection: AnimationDirection
+  ) => {
+
+    await this.setStateWithPromise({
+      animationDirection: animationDirection,
+      nextLetters: nextLetters
+    })
     
-
-
     const endEvent = this.oneTransitionEnd(
-      this.rootRef.querySelector('.title-letter-slider__next-letters > span:last-child'),
+      this.rootRef.querySelector(
+        '.title-letter-slider__next-letters > span:last-child'
+      ),
       1000
-    );
+    )
     
-    const aniamtionStarted = this.setStateWithPromise({animating: true});    
+    const aniamtionStarted = this.setStateWithPromise({animating: true})  
     
     await Promise.all([endEvent, aniamtionStarted])
 
-    // console.log('check if queue is null or not')
-    // if ( this.state.queuedLetters !== null ) {
-    //   const newLetters: string|null = this.state.queuedLetters;
-    //   await this.setStateWithPromise({
-    //     queuedLetters: null,
-    //     nextLetters,
-    //     currentLetters: nextLetters || ''
-    //   });
-    //   await this.startStateTransitionForAnimation(newLetters);
-    //   await this.setStateWithPromise({animating: false});
-    //   return;
-    // }
+    const { queuedLetters, queuedDirection } = this.state
 
     await this.setStateWithPromise({
       nextLetters: null,
       queuedLetters: null,
       currentLetters: nextLetters || '',
       animating: false
-    });
+    })
 
-    
-
-    await this.setStateWithPromise({animating: false});
+    if ( queuedLetters ) {
+      this.startStateTransitionForAnimation(
+        queuedLetters,
+        queuedDirection || AnimationDirection.UP
+      )
+    }
   }
 
   private renderLetter = (letter: string, index: number, items: Array<{}>) => {
-    const { animating } = this.state;
-    const { animationDirection } = this.props;
+    const { animating, animationDirection } = this.state
 
-    const style = {};
+    const style = {}
       
     if ( animating ) {
       Object.assign(style, {
@@ -116,15 +135,15 @@ extends React.Component<TitleLetterSliderProps, TitleLetterSliderState> {
         transitionTimingFunction: 'cubic-bezier(0.8,0,0.2,1)',
         transitionDuration: `${this.props.animationDuration}ms`,
         transitionDelay: `${index * 30 + 200}ms`
-      });
+      })
     }
 
-    return <span style={style} key={`${letter}-${index}`}>{letter}</span>;
+    return <span style={style} key={`${letter}-${index}`}>{letter}</span>
     
   }
 
-  private getNextLettersStyles (props: TitleLetterSliderProps) {
-    const { animationDirection } = props;
+  private getNextLettersStyles (props: TitleLetterSliderState) {
+    const { animationDirection } = props
     return {
       transform: animationDirection === AnimationDirection.UP 
         ? `translateY(100%)`
@@ -150,27 +169,21 @@ extends React.Component<TitleLetterSliderProps, TitleLetterSliderState> {
 
         <span 
           className='title-letter-slider__next-letters'
-          style={this.getNextLettersStyles(this.props)}
+          style={this.getNextLettersStyles(this.state)}
         >
           {nextLetters.map(this.renderLetter)}
         </span>
 
       </div>
-    );
+    )
   }
   
   private setStateWithPromise = (stateObject: object): Promise<undefined> => {
     return new Promise((resolve) => {
       raf(() => {
-        this.setState(stateObject, () => { resolve(); });      
-      });
-    });
-  }
-
-  private sleep = (delay: number): Promise<undefined> => {
-    return new Promise((resolve) => {
-      setTimeout(resolve, delay);
-    });
+        this.setState(stateObject, () => { resolve() })      
+      })
+    })
   }
 
   private oneTransitionEnd = (node: Element|null, maxWait: number = 1000): Promise<undefined> => {
@@ -180,17 +193,16 @@ extends React.Component<TitleLetterSliderProps, TitleLetterSliderState> {
 
     return new Promise((resolve) => {
       const timeout = setTimeout(() => {
-        node.removeEventListener('transitionend', handler);
-        resolve();
+        node.removeEventListener('transitionend', handler)
+        resolve()
       }, maxWait)
       const handler = () => {
-        // console.log('transitionend', node);
         clearTimeout(timeout)
-        resolve();
-        node.removeEventListener('transitionend', handler);
-      };
+        resolve()
+        node.removeEventListener('transitionend', handler)
+      }
       
-      node.addEventListener('transitionend', handler);
-    });
+      node.addEventListener('transitionend', handler)
+    })
   }
 }
