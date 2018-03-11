@@ -70,7 +70,17 @@ extends React.Component<TitleLetterSliderProps, TitleLetterSliderState> {
       animationDirection = AnimationDirection.UP 
     } = nextProps
 
+    if ( letters === this.props.letters ) {
+      return;
+    }
+
     if ( this.state.animating ) {
+      if ( letters === this.state.nextLetters ) {
+        return this.setState({
+          queuedLetters: null,
+          queuedDirection: null
+        })
+      }
       return this.setState({
         queuedLetters: letters,
         queuedDirection: animationDirection

@@ -8,7 +8,7 @@ storiesOf('TitleLetterSlider', module)
   .add('hello wolrd', () => <TitleLetterSlider letters="hello world"/>)
   .add('trigger', () => {
     const values = [
-      'hiking', 'lakes', 'rivers', 'paths', 'emo‍'
+      'hiking', 'lakes', 'rivers', 'paths', 'emo‍', 'walking'
     ];
 
     const ReactComponent = class Demo extends React.Component {
