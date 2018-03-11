@@ -12,6 +12,8 @@ export interface TitleLetterSliderProps {
   letters: string;
   animationDuration?: number;
   animationDirection?: AnimationDirection;
+  // animate even if received value is identical to current one?
+  aniamteToIdenticalValues?: Boolean;
 }
 
 export interface TitleLetterSliderState {
@@ -48,7 +50,8 @@ extends React.Component<TitleLetterSliderProps, TitleLetterSliderState> {
   public static defaultProps: Partial<TitleLetterSliderProps> = {
     animationDuration: 700,
     animationDirection: AnimationDirection.UP,
-    letters: ''
+    letters: '',
+    aniamteToIdenticalValues: true
   }
 
   state = {
@@ -70,12 +73,12 @@ extends React.Component<TitleLetterSliderProps, TitleLetterSliderState> {
       animationDirection = AnimationDirection.UP 
     } = nextProps
 
-    if ( letters === this.props.letters ) {
+    if ( !this.props.aniamteToIdenticalValues && letters === this.props.letters ) {
       return;
     }
 
     if ( this.state.animating ) {
-      if ( letters === this.state.nextLetters ) {
+      if ( !this.props.aniamteToIdenticalValues && letters === this.state.nextLetters ) {
         return this.setState({
           queuedLetters: null,
           queuedDirection: null
