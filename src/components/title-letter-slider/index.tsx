@@ -3,9 +3,15 @@ import raf from 'raf';
 
 import './index.css';
 
+export enum AnimationDirection {
+  UP = 1,
+  DOWN
+}
+
 export interface TitleLetterSliderProps { 
   letters: string;
-  animationDuration: number;
+  animationDuration?: number;
+  animationDirection?: AnimationDirection;
 }
 
 export interface TitleLetterSliderState {
@@ -15,12 +21,14 @@ export interface TitleLetterSliderState {
   queuedLetters: string|null;
 }
 
-const easeInCubic = ( t:number ): number => t * t * t;
-const easeInOutCubic = ( t:number ) => t<.5 ? 4*t*t*t : (t-1)*(2*t-2)*(2*t-2)+1;
-const easeInOutQuert = ( t:number ) => t<.5 ? 8*t*t*t*t : 1-8*(--t)*t*t*t;
+// const easeInCubic = ( t:number ): number => t * t * t;
+// const easeInOutCubic = ( t:number ) => t<.5 ? 4*t*t*t : (t-1)*(2*t-2)*(2*t-2)+1;
+// const easeInOutQuert = ( t:number ) => t<.5 ? 8*t*t*t*t : 1-8*(--t)*t*t*t;
 
 export class TitleLetterSlider 
 extends React.Component<TitleLetterSliderProps, TitleLetterSliderState> {
+
+  public static ANIMATION_DIRECTIONS = AnimationDirection;
 
   public static defaultProps: Partial<TitleLetterSliderProps> = {
     animationDuration: 700,
@@ -36,7 +44,7 @@ extends React.Component<TitleLetterSliderProps, TitleLetterSliderState> {
 
   rootRef: HTMLDivElement;
 
-  componentWillReceiveProps(nextProps: TitleLetterSliderProps) {
+  public componentWillReceiveProps(nextProps: TitleLetterSliderProps) {
     // if animation is still processing next letters, keep a reference of the
     // aniamtion that should start after this one. Don't animate now.
     if ( this.state.nextLetters ) {
@@ -48,11 +56,11 @@ extends React.Component<TitleLetterSliderProps, TitleLetterSliderState> {
     this.startStateTransitionForAnimation(nextProps.letters);
   }
 
-  setSelfRef = (el: HTMLDivElement): void => {
+  private setSelfRef = (el: HTMLDivElement): void => {
     this.rootRef = el;
   }
 
-  startStateTransitionForAnimation = async (nextLetters: string|null) => {
+  private startStateTransitionForAnimation = async (nextLetters: string|null) => {
     // console.log('set next letters', nextLetters)
     await this.setStateWithPromise({nextLetters: nextLetters});
     // console.log('sleep 10 ms')
@@ -94,27 +102,37 @@ extends React.Component<TitleLetterSliderProps, TitleLetterSliderState> {
     await this.setStateWithPromise({animating: false});
   }
 
-  renderLetter = (letter: string, index: number, items: Array<{}>) => {
+  private renderLetter = (letter: string, index: number, items: Array<{}>) => {
     const { animating } = this.state;
-    const extras: {style: object} = { style: {
-      display: 'inline-block'
-    } };
+    const { animationDirection } = this.props;
+
+    const style = {};
       
     if ( animating ) {
-      extras.style = {
-        ...extras.style,
-        transform: 'translateY(-100%)',
+      Object.assign(style, {
+        transform: animationDirection === AnimationDirection.UP 
+          ? 'translateY(-100%)' 
+          : 'translateY(100%)',
         transitionTimingFunction: 'cubic-bezier(0.8,0,0.2,1)',
         transitionDuration: `${this.props.animationDuration}ms`,
         transitionDelay: `${index * 30 + 200}ms`
-      };
+      });
     }
 
-    return <span {...extras} key={`${letter}-${index}`}>{letter}</span>;
+    return <span style={style} key={`${letter}-${index}`}>{letter}</span>;
     
   }
+
+  private getNextLettersStyles (props: TitleLetterSliderProps) {
+    const { animationDirection } = props;
+    return {
+      transform: animationDirection === AnimationDirection.UP 
+        ? `translateY(100%)`
+        : `translateY(-100%)`
+    }
+  }
   
-  render () {
+  public render () {
 
     const letters = Array.from(this.state.currentLetters)
     const nextLetters = Array.from((this.state.nextLetters || ''))
@@ -132,6 +150,7 @@ extends React.Component<TitleLetterSliderProps, TitleLetterSliderState> {
 
         <span 
           className='title-letter-slider__next-letters'
+          style={this.getNextLettersStyles(this.props)}
         >
           {nextLetters.map(this.renderLetter)}
         </span>

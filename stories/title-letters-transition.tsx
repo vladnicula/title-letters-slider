@@ -8,20 +8,31 @@ storiesOf('TitleLetterSlider', module)
   .add('hello wolrd', () => <TitleLetterSlider letters="hello world"/>)
   .add('trigger', () => {
     const values = [
-      'hiking', 'lakes', 'rivers', 'paths', 'emo\🕵️‍'
+      'hiking', 'lakes', 'rivers', 'paths', 'emo‍'
     ];
 
     const ReactComponent = class Demo extends React.Component {
       titleSlider: TitleLetterSlider;
 
       state = {
-        index: 0
+        index: 0,
+        direction: TitleLetterSlider.ANIMATION_DIRECTIONS.UP
       };
 
-      navigate = () => {
+      next = () => {
         const { index } = this.state; 
         this.setState({
-          index: index === values.length - 1 ? 0 : index + 1
+          index: index === values.length - 1 ? 0 : index + 1,
+          direction: TitleLetterSlider.ANIMATION_DIRECTIONS.UP
+        });
+      }
+
+      back = () => {
+        const { index } = this.state; 
+        
+        this.setState({
+          index: index === 0 ? values.length - 1 : index - 1,
+          direction: TitleLetterSlider.ANIMATION_DIRECTIONS.DOWN
         });
       }
 
@@ -32,11 +43,13 @@ storiesOf('TitleLetterSlider', module)
       render () {
         return (
           <div>
-          <TitleLetterSlider 
+          <TitleLetterSlider
             ref={this.setRef} 
             letters={values[this.state.index]}
+            animationDirection={this.state.direction}
           />
-          <button onClick={this.navigate}>Navigate</button>
+          <button onClick={this.back}>Back</button>
+          <button onClick={this.next}>Next</button>
           (should show {values[this.state.index]})
           </div>
         );

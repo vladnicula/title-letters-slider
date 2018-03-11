@@ -17,9 +17,16 @@
   position: relative;
 }
 
+.title-letter-slider__current-letters span {
+  display: inline-block;
+}
+
 .title-letter-slider__next-letters {
   position: absolute;
   top: 0;
   left: 0;
-  transform: translateY(100%);
+}
+
+.title-letter-slider__next-letters span {
+  display: inline-block;
 }
