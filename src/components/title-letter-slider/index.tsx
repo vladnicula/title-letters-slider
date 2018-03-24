@@ -38,10 +38,6 @@ export interface TitleLetterSliderState {
   queuedDirection: AnimationDirection|null;
 }
 
-// const easeInCubic = ( t:number ): number => t * t * t;
-// const easeInOutCubic = ( t:number ) => t<.5 ? 4*t*t*t : (t-1)*(2*t-2)*(2*t-2)+1;
-// const easeInOutQuert = ( t:number ) => t<.5 ? 8*t*t*t*t : 1-8*(--t)*t*t*t;
-
 export class TitleLetterSlider 
 extends React.Component<TitleLetterSliderProps, TitleLetterSliderState> {
 
@@ -56,7 +52,7 @@ extends React.Component<TitleLetterSliderProps, TitleLetterSliderState> {
 
   state = {
     animating: false,
-    currentLetters: this.props.letters,
+    currentLetters: this.props.letters.replace(/ /g, '\u00a0'),
     nextLetters: null,
     queuedLetters: null,
     animationDirection: this.props.animationDirection || AnimationDirection.UP,
@@ -69,9 +65,10 @@ extends React.Component<TitleLetterSliderProps, TitleLetterSliderState> {
     // if animation is still processing next letters, keep a reference of the
     // aniamtion that should start after this one. Don't animate now.
     const { 
-      letters, 
       animationDirection = AnimationDirection.UP 
     } = nextProps
+
+    const letters = nextProps.letters.replace(/ /g, '\u00a0');
 
     if ( !this.props.aniamteToIdenticalValues && letters === this.props.letters ) {
       return;

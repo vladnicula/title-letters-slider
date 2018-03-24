@@ -119,4 +119,55 @@ storiesOf('TitleLetterSlider', module)
       }
     }; 
     return <ReactComponent/>;
+  })
+  .add('type your text', () => {
+
+    const ReactComponent = class Demo extends React.Component {
+      titleSlider: TitleLetterSlider;
+
+      state = {
+        value: "hello",
+        direction: TitleLetterSlider.ANIMATION_DIRECTIONS.UP
+      };
+
+      updateText = () => {
+        console.log(this.refs.valueNode);
+        this.setState({
+          value: this.refs.valueNode.value,
+          direction: TitleLetterSlider.ANIMATION_DIRECTIONS.UP
+        });
+      }
+
+      toggleDirection = () => {
+        const { direction } = this.state;
+
+        this.setState({
+          direction: direction === TitleLetterSlider.ANIMATION_DIRECTIONS.UP
+            ? TitleLetterSlider.ANIMATION_DIRECTIONS.DOWN
+            : TitleLetterSlider.ANIMATION_DIRECTIONS.UP
+        })
+      }
+
+      setRef = (el: TitleLetterSlider) => {
+        this.titleSlider = el;
+      }
+
+      render () {
+        return (
+          <div>
+          <TitleLetterSlider
+            ref={this.setRef}
+            letters={this.state.value}
+            animationDirection={this.state.direction}
+          />
+          <input ref='valueNode' type='text'/>
+          <button onClick={this.updateText}>Update</button>
+          <button onClick={this.toggleDirection}>
+            Toogle direction
+          </button>
+          </div>
+        );
+      }
+    }; 
+    return <ReactComponent/>;
   });
